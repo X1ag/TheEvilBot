@@ -19,17 +19,15 @@ open_weather_token = 'Here open weather token '
 requests.post(
     f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id1}&text=Выбери команду: /ip, /spec, /screenshot,"
     f" /webcam, /message, /input, /wallpaper, /off, /restart, /sleep, /request, /website, /USD, /weather")
-
-
 # Когда бот включен он пишет такое сообщение пользователю
+
 
 # Функция при команде /start
 @bot.message_handler(commands=['start'])
 def start(message):
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btns = ['/ip', '/spec', '/screenshot', '/webcam',
-            '/message', '/input', '/wallpaper', '/off',
-            '/restart', '/sleep', '/request', '/website',
+            '/message', '/input', '/wallpaper', '/off', '/sleep', '/request', '/website',
             '/USD', '/weather']  # Список с кнопками кнопки
 
     for btn in btns:  # Дабы не писать миллион строк кода проходимся циклом по массиву и добавляем каждую кнопку в список кнопок
@@ -117,17 +115,13 @@ def wallpaper(message):
 def next_wallpaper(message):
     try:
         file = message.photo[-1].file_id
-        # Получаем файл 
         file = bot.get_file(file)
-        # Качаем его
         dfile = bot.download_file(file.file_path)
 
         with open(r'C:\Users\x1ag\Desktop\forbot\image.jpg', 'wb') as img:
             img.write(dfile)
-        
-        # Ищем путь к этому файлу
+
         path = os.path.abspath(r'C:\Users\x1ag\Desktop\forbot\image.jpg')
-        # Ставим на обои (но они не сохранятся после перезагрузки)ц
         ctypes.windll.user32.SystemParametersInfoW(20, 0, path, 0)
     except Exception as ex:
         print(ex)
@@ -136,14 +130,13 @@ def next_wallpaper(message):
 
 @bot.message_handler(commands=['off'])
 def off(message):
-    # Кнопки с выбором
+    # Кнопки с выбором (пользователь может случайно нажать на команду)
     markup_inline = types.InlineKeyboardMarkup()
     item_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
     item_no = types.InlineKeyboardButton(text='Нет', callback_data='no')
     # Добавляем кнопки в бота
     markup_inline.add(item_yes, item_no)
     bot.send_message(message.chat.id, 'Выключить ноутбук?', reply_markup=markup_inline)
-    # Отправляем сообщение где прикрепляем эти кнопки
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -153,27 +146,6 @@ def calldata(call):
         os.system("shutdown /p")
         # Если нет, то ничего не делаем
     elif call.data == 'no':
-        pass
-
-
-@bot.message_handler(commands=['restart'])
-def restart(message):
-    # Добавляем кнопки
-    markup_inline1 = types.InlineKeyboardMarkup()
-    item_yes = types.InlineKeyboardButton(text='Да', callback1_data='yesrestart')
-    item_no = types.InlineKeyboardButton(text='Нет', callback1_data='norestart')
-    # Добавляем их в телеграм бота
-    markup_inline1.add(item_yes, item_no)
-    bot.send_message(message.chat.id, 'Перезагрузить ноутбук?', reply_markup=markup_inline1)
-    # Отправляем сообщение где прикрепляем эти кнопки
-
-@bot.callback_query_handler(func=lambda call: True)
-def calldata1(call):
-    # Если да, то перезагружаем
-    if call.data == 'yesrestart':
-        win32api.InitiateSystemShutdown()
-    # Если нет, то ничего не делаем
-    elif call.data == 'norestart':
         pass
 
 
@@ -192,11 +164,9 @@ def get_request(message):
 
 
 def next_request(message):
-    # Делаем гугл запрос с помощью библиотеки webbrowser
     webbrowser.open_new_tab('https://www.google.com/search?q={}'.format(f'{message.text}'))
-    # Ставим задержку перед созданием скриншота чтобы страница успела прогрузиться
-    countdown(5) 
-    #Делаем скриншот
+    # Делаем гугл запрос с помощью библиотеки
+    countdown(5)  # Ставим задержку перед отправкой чтобы страница успела прогрузиться
     pag.screenshot(r'C:\Users\x1ag\Desktop\forbot\000.jpg')
 
     # Отправляем файл
@@ -213,13 +183,11 @@ def get_website(message):
 
 @bot.message_handler(commands=['USD', 'usd'])
 def get_data(message):
-    # Делаем API запрос на цену со всеми валютами
     req = requests.get('http://api.currencylayer.com/live?access_key=7fe2ed73dbae3284b2086b88a6a3d992')
+    # Делаем API запрос на цену на все валюты
     response = req.json()
-    # Достаем оттуда цену
-    sell_price = response['quotes']['USDRUB'] 
-    # Округляем до двух чисел после запятой
-    sell_price = int(sell_price * 100) / 100 
+    sell_price = response['quotes']['USDRUB']  # Достаем оттуда цену
+    sell_price = int(sell_price * 100) / 100  # Округляем до двух чисел после запятой
     bot.send_message(message.chat.id,
                      # Преобразуем дату для более удобного чтения
                      f'Сейчас {datetime.datetime.now().strftime("%d-%m-%y, %H:%M")}\nДоллар стоит: {sell_price}')
@@ -249,12 +217,11 @@ def show_weather(message: types.Message):
         r = requests.get(
             f'http://api.openweathermap.org/geo/1.0/direct?q={city}&appid={open_weather_token}&units=metric'
         )
-        # Преобразуем в json файл для более простого извлечения данных
-        data = r.json() 
-        # Получаем координаты города и его название
+        data = r.json()  # Преобразуем в json файл для более простого извлечения данных
         lat = data[0]['lat']
         lon = data[0]['lon']
         city = data[0]['name']
+        # Получаем координаты города и его название
 
         # Делаем гет запрос чтобы получить файл со всеми погодными условиями в этом районе
         g = requests.get(
