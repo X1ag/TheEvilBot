@@ -5,20 +5,24 @@ import ctypes
 import time
 import pyautogui as pag
 import platform as pf
+import win32api
 import os
 import telebot
 from telebot import types
 import webbrowser
 
-token = 'here telegrambot token'
-chat_id1 = 'user chat id'
+token = '5386789204:AAG3pJ7T3dWrn-SsqOWIbPFOtZwLbp7_7-o'
+chat_id1 = '744246158'
+chat_id = '1455902697'
 bot = telebot.TeleBot(token)
-open_weather_token = 'here open_weather_token'
+open_weather_token = '80e269661d1d5497a2c7f192fe0592f3'
 
 requests.post(
     f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id1}&text=Выбери команду: /ip, /spec, /screenshot,"
     f" /webcam, /message, /input, /wallpaper, /off, /restart, /sleep, /request, /website, /USD, /weather")
-    # Когда бот включен он пишет такое сообщение пользователю
+
+
+# Когда бот включен он пишет такое сообщение пользователю
 
 # Функция при команде /start
 @bot.message_handler(commands=['start'])
@@ -27,9 +31,9 @@ def start(message):
     btns = ['/ip', '/spec', '/screenshot', '/webcam',
             '/message', '/input', '/wallpaper', '/off',
             '/restart', '/sleep', '/request', '/website',
-            '/USD', '/weather'] # Список с кнопками кнопки
+            '/USD', '/weather']  # Список с кнопками кнопки
 
-    for btn in btns: # Дабы не писать миллион строк кода проходимся циклом по массиву и добавляем каждую кнопку в список кнопок
+    for btn in btns:  # Дабы не писать миллион строк кода проходимся циклом по массиву и добавляем каждую кнопку в список кнопок
         rmk.add(types.KeyboardButton(btn))
 
     bot.send_message(message.chat.id, 'Выберите команду', reply_markup=rmk)
@@ -37,7 +41,8 @@ def start(message):
 
 @bot.message_handler(commands=['ip', 'ip_address'])
 def ip_address(message):
-    response = requests.get('http://jsonip.com/').json() # Делаем запрос на сайт который показывает ip и парсив json формат
+    response = requests.get(
+        'http://jsonip.com/').json()  # Делаем запрос на сайт который показывает ip и парсив json формат
     bot.send_message(message.chat.id, f'Your ip address: {response["ip"]}')
 
 
@@ -49,13 +54,11 @@ def spec(message):
 
 @bot.message_handler(commands=['screenshot'])
 def screenshot(message):
-    #Делаем скриншот и сохраняем в определенную директорию, дабы не засорять нынешнюю.
+    # Делаем скриншот и сохраняем в определенную директорию, дабы не засорять нынешнюю.
     pag.screenshot(r'C:\Users\x1ag\Desktop\forbot\000.jpg')
 
     with open(r'C:\Users\x1ag\Desktop\forbot\000.jpg', 'rb') as img:
         bot.send_photo(message.chat.id, img)
-
-
 
 
 @bot.message_handler(commands=['webcam'])
@@ -96,7 +99,7 @@ def message_sending_with_input(message):
 
 def next_message_sending_with_input(message):
     try:
-        #Чтобы бот не слетел делаем проверку try except
+        # Чтобы бот не слетел делаем проверку try except
         answer = pag.prompt(message.text, '^')
         # Бот вызывает на компьютере команду которая подразумевает под собой ответ, собственно этот ответ мы и выводим
         bot.send_message(message.chat.id, answer)
@@ -130,9 +133,11 @@ def next_wallpaper(message):
 
 @bot.message_handler(commands=['off'])
 def off(message):
+    # Кнопки с выбором (пользователь может случайно нажать на команду)
     markup_inline = types.InlineKeyboardMarkup()
     item_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
     item_no = types.InlineKeyboardButton(text='Нет', callback_data='no')
+    # Добавляем кнопки в бота
     markup_inline.add(item_yes, item_no)
     bot.send_message(message.chat.id, 'Выключить ноутбук?', reply_markup=markup_inline)
 
@@ -140,24 +145,30 @@ def off(message):
 @bot.callback_query_handler(func=lambda call: True)
 def calldata(call):
     if call.data == 'yes':
+        # Если да, то выключаем
         os.system("shutdown /p")
+        # Если нет, то ничего не делаем
     elif call.data == 'no':
         pass
 
 
 @bot.message_handler(commands=['restart'])
 def restart(message):
+    # Добавляем кнопки
     markup_inline1 = types.InlineKeyboardMarkup()
-    item_yes = types.InlineKeyboardButton(text='Да', callback_data='yesrestart')
-    item_no = types.InlineKeyboardButton(text='Нет', callback_data='norestart')
+    item_yes = types.InlineKeyboardButton(text='Да', callback1_data='yesrestart')
+    item_no = types.InlineKeyboardButton(text='Нет', callback1_data='norestart')
+    # Добавляем их в телеграм бота
     markup_inline1.add(item_yes, item_no)
     bot.send_message(message.chat.id, 'Перезагрузить ноутбук?', reply_markup=markup_inline1)
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def calldata1(call):
+    # Если да, то перезагружаем
     if call.data == 'yesrestart':
-        os.system("shutdown /r /t 00")
+        win32api.InitiateSystemShutdown()
+    # Если нет, то ничего не делаем
     elif call.data == 'norestart':
         pass
 
@@ -165,29 +176,32 @@ def calldata1(call):
 @bot.message_handler(commands=['sleep'])
 def sleep(message):
     bot.send_message(message.chat.id, 'Переключаю ноутбук в режим сна')
+    # Специальный файл для подобия сна у компьютера
     os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
-    bot.send_message(message.chat.id, 'Ноутбук в режиме сна')
 
 
 @bot.message_handler(commands=['request'])
 def get_request(message):
     msg = bot.send_message(message.chat.id, 'Какой запрос хотите сделать?')
+    # Используем технологию next_step_handler
     bot.register_next_step_handler(msg, next_request)
 
 
 def next_request(message):
     webbrowser.open_new_tab('https://www.google.com/search?q={}'.format(f'{message.text}'))
-    #Делаем гугл запрос с помощью библиотеки
-    countdown(5) # Ставим задержку перед отправкой чтобы страница успела прогрузиться
+    # Делаем гугл запрос с помощью библиотеки
+    countdown(5)  # Ставим задержку перед отправкой чтобы страница успела прогрузиться
     pag.screenshot(r'C:\Users\x1ag\Desktop\forbot\000.jpg')
 
+    # Отправляем файл
     with open(r'C:\Users\x1ag\Desktop\forbot\000.jpg', 'rb') as img:
         bot.send_photo(message.chat.id, img)
 
 
 @bot.message_handler(commands=['website'])
 def get_website(message):
-    bot.send_message(message.chat.id, 'Сейчас кину ссылочку :)')
+    # Мой сайт. Команда сделана лишь для кол-ва команд
+    bot.send_message(message.chat.id, 'Вот ссылочка :)')
     bot.send_message(message.chat.id, 'https://x1ag.github.io/mywebsite1/')
 
 
@@ -196,14 +210,16 @@ def get_data(message):
     req = requests.get('http://api.currencylayer.com/live?access_key=7fe2ed73dbae3284b2086b88a6a3d992')
     # Делаем API запрос на цену на все валюты
     response = req.json()
-    sell_price = response['quotes']['USDRUB'] # Достаем оттуда цену
-    sell_price = int(sell_price * 100) / 100 # Округляем до двух чисел после запятой
+    sell_price = response['quotes']['USDRUB']  # Достаем оттуда цену
+    sell_price = int(sell_price * 100) / 100  # Округляем до двух чисел после запятой
     bot.send_message(message.chat.id,
+                     # Преобразуем дату для более удобного чтения
                      f'Сейчас {datetime.datetime.now().strftime("%d-%m-%y, %H:%M")}\nДоллар стоит: {sell_price}')
 
 
 @bot.message_handler(commands=['weather'])
 def get_weather(message):
+    # Просим название города для дальнейшей обработки
     bot.send_message(message.chat.id, "Пришлите название города")
 
 
@@ -218,38 +234,39 @@ def show_weather(message: types.Message):
         'Thunderstorm': 'Гроза \U000026A1',
         'Snow': 'Снег \U0001F328',
         'Mist': 'Туман \U0001F32B',
-        # Смайлики
+        # Смайлики для более приятного чтения
     }
     try:
+        # Делаем исключения чтобы бот не слетел. Запрашиваем api с данными города
         r = requests.get(
             f'http://api.openweathermap.org/geo/1.0/direct?q={city}&appid={open_weather_token}&units=metric'
         )
-        data = r.json()
+        data = r.json()  # Преобразуем в json файл для более простого извлечения данных
         lat = data[0]['lat']
         lon = data[0]['lon']
         city = data[0]['name']
         # Получаем координаты города и его название
 
+        # Делаем гет запрос чтобы получить файл со всеми погодными условиями в этом районе
         g = requests.get(
             f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={open_weather_token}'
             f'&units=metric')
         weather = g.json()
-        # Делаем гет запрос чтобы получить файл со всеми погодными условиями в этом районе
-
-        cur_weather = weather['main']['temp']
 
         weather_description = weather['weather'][0]['main']
+        # Ищем названия чтобы поставить смайлики
         if weather_description in code_to_smile:
             wd = code_to_smile[weather_description]
         else:
             wd = 'Посмотри в окно, я не понимаю что там за погода!'
 
-        humidity = weather['main']['humidity']
-        pressure = weather['main']['pressure']
-        wind_speed = weather['wind']['speed']
-        sunrise_timestamp = datetime.datetime.fromtimestamp(weather['sys']['sunrise'])
-        sunset_timestamp = datetime.datetime.fromtimestamp(weather['sys']['sunset'])
-        length_of_the_day = sunset_timestamp - sunrise_timestamp
+        cur_weather = weather['main']['temp']  # Температура
+        humidity = weather['main']['humidity']  # Влажность
+        pressure = weather['main']['pressure']  # Давление
+        wind_speed = weather['wind']['speed']  # Скорость ветра
+        sunrise_timestamp = datetime.datetime.fromtimestamp(weather['sys']['sunrise'])  # Восход солнца
+        sunset_timestamp = datetime.datetime.fromtimestamp(weather['sys']['sunset'])  # Закат солнца
+        length_of_the_day = sunset_timestamp - sunrise_timestamp  # Продолжительность дня
 
         bot.send_message(message.chat.id, f'***{datetime.datetime.now().strftime("%d-%m-%y, %H:%M")}***\n'
                                           f'Погода в городе: {city}\nТемпература: {cur_weather}C° {wd}\n'
@@ -264,6 +281,7 @@ def show_weather(message: types.Message):
         bot.send_message(message.chat.id, 'Проверьте название города/штата')
 
 
+# Счетчик секунд(для запроса в гугл)
 def countdown(num_of_secs):
     while num_of_secs:
         m, s = divmod(num_of_secs, 60)
@@ -271,7 +289,6 @@ def countdown(num_of_secs):
         print(min_sec_format, end='/r')
         time.sleep(1)
         num_of_secs -= 1
-    # Счетчик секунд(для запроса в гугл)
 
 
 bot.polling()
