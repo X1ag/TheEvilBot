@@ -213,7 +213,7 @@ def get_website(message):
 
 @bot.message_handler(commands=['USD', 'usd'])
 def get_data(message):
-    # Делаем API запрос на цену на все валюты
+    # Делаем API запрос на цену со всеми валютами
     req = requests.get('http://api.currencylayer.com/live?access_key=7fe2ed73dbae3284b2086b88a6a3d992')
     response = req.json()
     # Достаем оттуда цену
