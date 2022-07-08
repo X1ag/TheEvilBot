@@ -5,22 +5,24 @@ import ctypes
 import time
 import pyautogui as pag
 import platform as pf
-import win32api
 import os
 import telebot
 from telebot import types
 import webbrowser
+from config import token, open_weather_token, chat_id, chat_id1
 
-token = 'Here telegramb ot token '
-chat_id1 = 'Here user chat id'
+token = token
+chat_id1 = chat_id1
+chat_id = chat_id
 bot = telebot.TeleBot(token)
-open_weather_token = 'Here open weather token '
+open_weather_token = open_weather_token
 
 requests.post(
     f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id1}&text=Выбери команду: /ip, /spec, /screenshot,"
-    f" /webcam, /message, /input, /wallpaper, /off, /restart, /sleep, /request, /website, /USD, /weather")
-# Когда бот включен он пишет такое сообщение пользователю
+    f" /webcam, /message, /input, /wallpaper, /off, /sleep, /request, /website, /USD, /weather, /file, /folder")
 
+
+# Когда бот включен он пишет такое сообщение пользователю
 
 # Функция при команде /start
 @bot.message_handler(commands=['start'])
@@ -28,12 +30,76 @@ def start(message):
     rmk = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btns = ['/ip', '/spec', '/screenshot', '/webcam',
             '/message', '/input', '/wallpaper', '/off', '/sleep', '/request', '/website',
-            '/USD', '/weather']  # Список с кнопками кнопки
+            '/USD', '/weather', '/file', '/folder', ]  # Список с кнопками кнопки
 
     for btn in btns:  # Дабы не писать миллион строк кода проходимся циклом по массиву и добавляем каждую кнопку в список кнопок
         rmk.add(types.KeyboardButton(btn))
 
     bot.send_message(message.chat.id, 'Выберите команду', reply_markup=rmk)
+
+
+@bot.message_handler(commands=['folder'])
+def choose_name(message):
+    name_folder = bot.send_message(message.chat.id, 'Введите название папки')
+    bot.register_next_step_handler(name_folder, create_folder)
+
+
+def create_folder(message):
+    try:
+        os.mkdir(rf'C:\Users\x1ag\Desktop\forbot\{message.text}')
+        bot.send_message(message.chat.id, 'Папка создана!')
+    except Exception as ex:
+        print(ex)
+
+
+@bot.message_handler(commands=['file'])
+def get_folder(message):
+    try:
+        path = r'C:\Users\x1ag\Desktop\forbot'
+        photos = []
+        photos2 = []
+        photos.append(os.listdir(path=path))
+        for i in photos:
+            for j in i:
+                photos2.append(j)
+        if '000.jpg' or 'cam.jpg' in photos2:
+            photos2.remove('000.jpg') or photos2.remove('cam.jpg')
+        else:
+            pass
+        mesg = bot.send_message(message.chat.id, 'Пришлите название папки')
+        bot.send_message(message.chat.id, rf'Вот все папки: {photos2}')
+        bot.register_next_step_handler(mesg, get_name)
+    except Exception as ex:
+        print(ex)
+        print('Я в get_folder')
+
+
+def get_name(message):
+    try:
+        global name_f
+        path = r'C:\Users\x1ag\Desktop\forbot'
+        name_f = message.text
+        if os.path.exists(rf'{path}\{message.text}'):
+            pass
+        else:
+            bot.send_message(message.chat.id, 'Такой папки нет')
+            return
+        msg = bot.send_message(message.chat.id, 'Пришли фото, которое надо сохранить')
+        bot.register_next_step_handler(msg, get_photo)
+    except Exception as ex:
+        print(ex)
+        print('Я в get_name')
+
+
+def get_photo(message):
+    file = message.photo[-1].file_id
+    file = bot.get_file(file)
+    dfile = bot.download_file(file.file_path)
+    timestr = time.strftime("%Y-%m-%d_%H-%M-%S")
+
+    with open(rf'C:\Users\x1ag\Desktop\forbot\{name_f}\{timestr}' + '.jpg', 'wb') as timestr:
+        timestr.write(dfile)
+        bot.send_message(message.chat.id, 'Фото сохранено =)')
 
 
 @bot.message_handler(commands=['ip', 'ip_address'])
@@ -45,7 +111,7 @@ def ip_address(message):
 
 @bot.message_handler(commands=['spec'])
 def spec(message):
-    msg = f'Name PC: {pf.node()}\nProcessor: {pf.processor()}\nSystem: {pf.system()} {pf.release()}'
+    msg = f'Name PC: {pf.node()}\nProcessor: i5 8300H, 4 cores, 2.4 GHz\nSystem: {pf.system()} {pf.release()}\nVideocard: Gtx GeForce 1060\nRAM: 8 Gb'
     bot.send_message(message.chat.id, msg)
 
 
@@ -196,11 +262,11 @@ def get_data(message):
 @bot.message_handler(commands=['weather'])
 def get_weather(message):
     # Просим название города для дальнейшей обработки
-    bot.send_message(message.chat.id, "Пришлите название города")
+    city = bot.send_message(message.chat.id, "Пришлите название города")
+    bot.register_next_step_handler(city, show_weather)
 
 
-@bot.message_handler(content_types=['text'])
-def show_weather(message: types.Message):
+def show_weather(message):
     city = message.text
     code_to_smile = {
         'Clear': "Ясно \U00002600",
