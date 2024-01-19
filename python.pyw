@@ -11,10 +11,10 @@ import requests
 import telebot
 from telebot import types
 
-token = '5386789204:AAG3pJ7T3dWrn-SsqOWIbPFOtZwLbp7_7-o'
+token = ''
 bot = telebot.TeleBot(token)
 open_weather_token = '0240bf3a21fa9bf9c2c413c1ccc6c22e'
-myId = '744246158'
+myId = ''
 conn = pg.connect(database='postgres', user='postgres', password='qwerty', host='127.0.0.1', port='5432')
 cur = conn.cursor()
 cur.execute("""
